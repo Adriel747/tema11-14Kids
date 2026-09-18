@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examen: Lessons 11-14</title>
+<style>
+  :root{
+    --bg: #eaf6ff;
+    --card-bg: #ffffff;
+    --text: #223047;
+    --text-soft: #55637a;
+    --primary: #2f9ce0;
+    --primary-dark: #1c7bb8;
+    --accent: #ffb703;
+    --accent2: #ff6f91;
+    --correct: #38b06c;
+    --wrong: #e5484d;
+    --border: #d7e8f5;
+    --option-bg: #f4faff;
+    --shadow: 0 10px 30px rgba(47,156,224,0.15);
+  }
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    padding: 20px 14px 60px;
+  }
+  .wrap{ max-width: 760px; margin: 0 auto; }
+  header.top{ text-align:center; margin-bottom: 20px; }
+  header.top h1{ font-size: clamp(1.5rem, 4vw, 2.1rem); margin: 6px 0 4px; color: var(--primary-dark); }
+  header.top p{ color: var(--text-soft); margin: 0; font-size: 1rem; }
+  .badge-row{ display:flex; justify-content:center; gap:8px; flex-wrap: wrap; margin-top: 10px; }
+  .badge{ background: var(--option-bg); border: 1px solid var(--border); color: var(--text-soft);
+    padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+  .progress-track{ background: var(--option-bg); border-radius: 20px; height: 14px; overflow: hidden;
+    margin: 18px 0; border: 1px solid var(--border); }
+  .progress-fill{ height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent2));
+    width: 0%; transition: width 0.4s ease; border-radius: 20px; }
+  .card{ background: var(--card-bg); border-radius: 22px; box-shadow: var(--shadow);
+    padding: 26px 22px; margin-bottom: 18px; border: 1px solid var(--border); }
+  .lesson-tag{ display:inline-block; background: var(--accent); color: #43310a; font-weight: 800;
+    font-size: 0.75rem; padding: 4px 10px; border-radius: 10px; margin-bottom: 10px; letter-spacing: 0.3px; }
+  .q-num{ color: var(--text-soft); font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; }
+  .emoji-row{ font-size: 3rem; text-align: center; margin: 6px 0 14px; line-height: 1.2; }
+  .question-text{ font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; text-align: center; }
+  .options{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 480px){ .options{ grid-template-columns: 1fr; } }
+  .opt-btn{ background: var(--option-bg); border: 2px solid var(--border); color: var(--text);
+    border-radius: 14px; padding: 14px 12px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease; text-align: left; }
+  .opt-btn:hover:not(:disabled){ transform: translateY(-2px); border-color: var(--primary); }
+  .opt-btn:disabled{ cursor: default; }
+  .opt-btn.selected{ border-color: var(--primary); background: #dcf0fd; }
+  .opt-btn.correct{ border-color: var(--correct); background: #dcf5e6; }
+  .opt-btn.wrong{ border-color: var(--wrong); background: #fbdfe0; }
+  .feedback{ margin-top: 14px; font-weight: 700; text-align: center; font-size: 1rem; min-height: 24px; }
+  .feedback.correct{ color: var(--correct); }
+  .feedback.wrong{ color: var(--wrong); }
+  .nav-row{ display:flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+  button.nav-btn{ flex:1; border: none; border-radius: 14px; padding: 14px; font-size: 1rem;
+    font-weight: 800; cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease; }
+  button.nav-btn:active{ transform: scale(0.97); }
+  button.nav-btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+  .btn-primary{ background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+  .btn-ghost{ background: var(--option-bg); color: var(--text); border: 2px solid var(--border) !important; }
+  .start-screen, .end-screen{ text-align:center; }
+  .start-emojis{ font-size: 3.2rem; margin-bottom: 10px; }
+  .start-screen p, .end-screen p{ color: var(--text-soft); font-size: 1.05rem; line-height: 1.5; }
+  .name-input{ width: 100%; padding: 14px; border-radius: 14px; border: 2px solid var(--border);
+    background: var(--option-bg); color: var(--text); font-size: 1rem; margin: 14px 0; text-align: center; }
+  .name-input:focus{ outline: none; border-color: var(--primary); }
+  .score-circle{ width: 150px; height: 150px; border-radius: 50%;
+    background: conic-gradient(var(--primary) calc(var(--pct) * 1%), var(--option-bg) 0);
+    display:flex; align-items:center; justify-content:center; margin: 20px auto; position: relative; }
+  .score-circle::before{ content:""; position:absolute; width: 118px; height: 118px; border-radius: 50%; background: var(--card-bg); }
+  .score-circle span{ position: relative; font-size: 1.6rem; font-weight: 900; color: var(--primary-dark); }
+  .stars{ font-size: 2.2rem; margin: 10px 0; }
+  .review-list{ text-align:left; margin-top: 20px; display:flex; flex-direction:column; gap: 8px; }
+  .review-item{ display:flex; align-items:center; gap: 10px; background: var(--option-bg);
+    border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; font-size: 0.9rem; }
+  .review-icon{ font-size: 1.2rem; }
+  .hidden{ display:none !important; }
+  .save-status{ text-align:center; font-size: 0.85rem; color: var(--text-soft); margin-top: 10px; min-height: 18px; }
+  footer.credit{ text-align:center; color: var(--text-soft); font-size: 0.78rem; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div style="font-size:2.4rem;">🍌🧺🔺</div>
+    <h1>Examen: Lessons 11–14</h1>
+    <p>At the Supermarket · At the Store · Shapes</p>
+    <div class="badge-row">
+      <span class="badge">👧 8-12 años</span>
+      <span class="badge">📝 15 preguntas</span>
+      <span class="badge">📊 Guarda tu resultado</span>
+    </div>
+  </header>
+
+  <div class="card start-screen" id="startScreen">
+    <div class="start-emojis">🍎🍊🍌</div>
+    <p><strong>¡Hola!</strong> Vas a practicar en inglés:<br>
+    singular / plural, <em>"What is it?"</em>, <em>"Are they...?"</em> y las formas (shapes).</p>
+    <input type="text" id="playerName" class="name-input" placeholder="Escribe tu nombre aquí ✏️" maxlength="30">
+    <button class="nav-btn btn-primary" style="width:100%;" onclick="startQuiz()">¡Empezar examen! 🚀</button>
+  </div>
+
+  <div id="quizScreen" class="hidden">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="card">
+      <div class="lesson-tag" id="lessonTag">LESSON 11</div>
+      <div class="q-num" id="qNum">Pregunta 1 de 15</div>
+      <div class="emoji-row" id="qEmoji"></div>
+      <div class="question-text" id="qText"></div>
+      <div class="options" id="qOptions"></div>
+      <div class="feedback" id="qFeedback"></div>
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn btn-ghost" id="btnBack" onclick="goBack()">⬅️ Atrás</button>
+      <button class="nav-btn btn-primary" id="btnNext" onclick="goNext()" disabled>Siguiente ➡️</button>
+    </div>
+  </div>
+
+  <div class="card end-screen hidden" id="endScreen">
+    <h2 id="endGreeting">¡Muy bien!</h2>
+    <div class="score-circle" id="scoreCircle" style="--pct:0;">
+      <span id="scoreText">0/15</span>
+    </div>
+    <div class="stars" id="starsRow"></div>
+    <p id="endMessage"></p>
+    <div class="save-status" id="saveStatus"></div>
+    <div class="review-list" id="reviewList"></div>
+    <div class="nav-row">
+      <button class="nav-btn btn-ghost" onclick="restartQuiz()">🔁 Intentar de nuevo</button>
+    </div>
+  </div>
+
+  <footer class="credit">Basado en Lessons 11–14 · Jump Up series</footer>
+</div>
+
+<script>
+/* =========================================================
+   PEGA AQUÍ LA URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT
+   (la que termina en /exec, después de implementarla)
+   ========================================================= */
+const SCRIPT_URL = "PEGA_AQUI_TU_URL_DE_APPS_SCRIPT";
+
+/* ============ DATA ============ */
+const QUESTIONS = [
+  { lesson: "LESSON 11", emoji: "🍌", text: "What is it?",
+    options: ["It's a banana.", "They're bananas.", "It's an apple.", "They're apples."], correct: 0 },
+  { lesson: "LESSON 11", emoji: "🍌🍌🍌", text: "What are they?",
+    options: ["It's a banana.", "They're bananas.", "It's a melon.", "They're melons."], correct: 1 },
+  { lesson: "LESSON 11", emoji: "🍎🍎", text: "What are they?",
+    options: ["It's an apple.", "They're apples.", "They're oranges.", "It's an orange."], correct: 1 },
+  { lesson: "LESSON 11", emoji: "🐻", text: "What is it?",
+    options: ["They're bears.", "It's a bear.", "It's a chair.", "They're chairs."], correct: 1 },
+  { lesson: "LESSON 11", emoji: "🪑🪑🪑", text: "What are they?",
+    options: ["It's a chair.", "They're chairs.", "It's a bear.", "They're bears."], correct: 1 },
+  { lesson: "LESSON 12", emoji: "🖊️🖊️🖊️", text: "Are they markers?",
+    options: ["Yes, they are.", "No, they aren't.", "Yes, it is.", "No, it isn't."], correct: 0 },
+  { lesson: "LESSON 12", emoji: "🧽", text: "Is it an eraser?",
+    options: ["Yes, they are.", "No, they aren't.", "Yes, it is.", "No, it isn't."], correct: 2 },
+  { lesson: "LESSON 12", emoji: "📓📕", text: "Are they notebooks?",
+    options: ["Yes, they are.", "No, they aren't.", "Yes, it is.", "No, it isn't."], correct: 0 },
+  { lesson: "LESSON 12", emoji: "✏️✏️", text: "Are they erasers? (2 pencils shown)",
+    options: ["Yes, they are.", "No, they aren't.", "Yes, it is.", "No, it isn't."], correct: 1 },
+  { lesson: "LESSON 12", emoji: "🐱🐹🐵", text: "Are they erasers? (3 animal toys shown)",
+    options: ["Yes, they are.", "No, they aren't.", "Yes, it is.", "No, it isn't."], correct: 1 },
+  { lesson: "LESSON 14", emoji: "🔴", text: "What shape is it?",
+    options: ["It's a square.", "It's a circle.", "It's a triangle.", "They're circles."], correct: 1 },
+  { lesson: "LESSON 14", emoji: "🟩", text: "What shape is it?",
+    options: ["It's a triangle.", "It's a circle.", "It's a square.", "It's a rectangle."], correct: 2 },
+  { lesson: "LESSON 14", emoji: "🔺", text: "What shape is it?",
+    options: ["It's a circle.", "It's a triangle.", "It's a square.", "It's a rectangle."], correct: 1 },
+  { lesson: "LESSON 14", emoji: "🟧", text: "What shape is it? (rectangle shown)",
+    options: ["It's a square.", "It's a circle.", "It's a rectangle.", "It's a triangle."], correct: 2 },
+  { lesson: "LESSON 14", emoji: "🍈🍈", text: "What shape are they? (two round melons)",
+    options: ["They're squares.", "They're circles.", "They're triangles.", "They're rectangles."], correct: 1 }
+];
+
+/* ============ STATE ============ */
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let playerName = "";
+
+/* ============ ELEMENTS ============ */
+const startScreen = document.getElementById('startScreen');
+const quizScreen = document.getElementById('quizScreen');
+const endScreen = document.getElementById('endScreen');
+const progressFill = document.getElementById('progressFill');
+const lessonTag = document.getElementById('lessonTag');
+const qNum = document.getElementById('qNum');
+const qEmoji = document.getElementById('qEmoji');
+const qText = document.getElementById('qText');
+const qOptions = document.getElementById('qOptions');
+const qFeedback = document.getElementById('qFeedback');
+const btnBack = document.getElementById('btnBack');
+const btnNext = document.getElementById('btnNext');
+const saveStatus = document.getElementById('saveStatus');
+
+function startQuiz(){
+  const nameInput = document.getElementById('playerName');
+  playerName = nameInput.value.trim() || "Campeón/a";
+  startScreen.classList.add('hidden');
+  quizScreen.classList.remove('hidden');
+  current = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  lessonTag.textContent = q.lesson;
+  qNum.textContent = `Pregunta ${current + 1} de ${QUESTIONS.length}`;
+  qEmoji.textContent = q.emoji;
+  qText.textContent = q.text;
+  qOptions.innerHTML = "";
+  qFeedback.textContent = "";
+  qFeedback.className = "feedback";
+
+  const chosen = answers[current];
+
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = "opt-btn";
+    btn.textContent = opt;
+    btn.onclick = () => selectAnswer(idx);
+    if(chosen !== null){
+      btn.disabled = true;
+      if(idx === q.correct) btn.classList.add('correct');
+      else if(idx === chosen && chosen !== q.correct) btn.classList.add('wrong');
+    }
+    qOptions.appendChild(btn);
+  });
+
+  if(chosen !== null){
+    if(chosen === q.correct){
+      qFeedback.textContent = "¡Correcto! 🎉";
+      qFeedback.classList.add('correct');
+    } else {
+      qFeedback.textContent = "Casi... ¡sigue intentando! 💪";
+      qFeedback.classList.add('wrong');
+    }
+    btnNext.disabled = false;
+  } else {
+    btnNext.disabled = true;
+  }
+
+  btnBack.disabled = current === 0;
+  btnNext.textContent = current === QUESTIONS.length - 1 ? "Ver resultado 🏁" : "Siguiente ➡️";
+
+  const pct = ((current) / QUESTIONS.length) * 100;
+  progressFill.style.width = pct + "%";
+}
+
+function selectAnswer(idx){
+  if(answers[current] !== null) return;
+  answers[current] = idx;
+  renderQuestion();
+}
+
+function goNext(){
+  if(current < QUESTIONS.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function goBack(){
+  if(current > 0){
+    current--;
+    renderQuestion();
+  }
+}
+
+function showResults(){
+  quizScreen.classList.add('hidden');
+  endScreen.classList.remove('hidden');
+  progressFill.style.width = "100%";
+
+  let score = 0;
+  const detail = QUESTIONS.map((q, i) => {
+    const isCorrect = answers[i] === q.correct;
+    if(isCorrect) score++;
+    return {
+      question: q.text,
+      selected: answers[i] !== null ? q.options[answers[i]] : "(sin responder)",
+      correctAnswer: q.options[q.correct],
+      isCorrect
+    };
+  });
+
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  document.getElementById('scoreCircle').style.setProperty('--pct', pct);
+  document.getElementById('scoreText').textContent = `${score}/${QUESTIONS.length}`;
+
+  const greeting = document.getElementById('endGreeting');
+  const message = document.getElementById('endMessage');
+  const stars = document.getElementById('starsRow');
+
+  let starCount = pct >= 90 ? 5 : pct >= 75 ? 4 : pct >= 55 ? 3 : pct >= 35 ? 2 : 1;
+  stars.textContent = "⭐".repeat(starCount) + "☆".repeat(5 - starCount);
+
+  if(pct >= 80){
+    greeting.textContent = `¡Excelente, ${playerName}! 🌟`;
+    message.textContent = "Dominas muy bien el vocabulario y las preguntas de las Lecciones 11 a 14.";
+  } else if(pct >= 50){
+    greeting.textContent = `¡Buen trabajo, ${playerName}! 👍`;
+    message.textContent = "Vas muy bien. Repasa un poco más y lo dominarás completamente.";
+  } else {
+    greeting.textContent = `¡Sigue practicando, ${playerName}! 💪`;
+    message.textContent = "No te preocupes, puedes repasar las lecciones y volver a intentarlo.";
+  }
+
+  const reviewList = document.getElementById('reviewList');
+  reviewList.innerHTML = "";
+  detail.forEach(d => {
+    const item = document.createElement('div');
+    item.className = "review-item";
+    item.innerHTML = `<span class="review-icon">${d.isCorrect ? '✅' : '❌'}</span>
+      <span>${d.question} &rarr; <strong>${d.correctAnswer}</strong></span>`;
+    reviewList.appendChild(item);
+  });
+
+  sendResultsToSheet(score, QUESTIONS.length, pct, detail);
+}
+
+function sendResultsToSheet(score, total, percent, detail){
+  if(!SCRIPT_URL || SCRIPT_URL.indexOf("PEGA_AQUI") !== -1){
+    saveStatus.textContent = "⚠️ Falta configurar la URL de Google Apps Script en el HTML.";
+    return;
+  }
+  saveStatus.textContent = "Guardando tu resultado... ⏳";
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors", // Apps Script no permite leer la respuesta desde el navegador
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({
+      name: playerName,
+      score: score,
+      total: total,
+      percent: percent,
+      answers: detail
+    })
+  })
+  .then(() => {
+    saveStatus.textContent = "✅ ¡Tu resultado se guardó correctamente!";
+  })
+  .catch(() => {
+    saveStatus.textContent = "⚠️ No se pudo guardar el resultado. Revisa tu conexión.";
+  });
+}
+
+function restartQuiz(){
+  endScreen.classList.add('hidden');
+  startScreen.classList.remove('hidden');
+  progressFill.style.width = "0%";
+  document.getElementById('playerName').value = playerName === "Campeón/a" ? "" : playerName;
+  saveStatus.textContent = "";
+}
+</script>
+</body>
+</html>
